@@ -1,6 +1,6 @@
 notify('MODULAR: fuel-plugin-zaqar/keystone.pp')
 
-$zaqar             = hiera_hash('manila', {})
+$zaqar             = hiera_hash('zaqar', {})
 $pass              = $zaqar['user_password']
 
 $public_ssl_hash   = hiera_hash('public_ssl')
