@@ -1,33 +1,108 @@
-# These tasks will be merged into deployment graph. Here you
-# can specify new tasks for any roles, even built-in ones.
-
-- id: fuel-plugin-zaqar_role
-  type: group
-  role: [fuel-plugin-zaqar_role]
-  parameters:
-    strategy:
-      type: parallel
-
-- id: fuel-plugin-zaqar-deployment-puppet
+- id: zaqar-keystone
   type: puppet
-  role: [fuel-plugin-zaqar_role]
-
-# If you do not want to use task-based deployment that is introduced as experimental
-# in fuel v8.0 comment code section below this comment, uncomment two lines below it
-# and do the same for tasks below.
-
-  version: 2.0.0
+  groups: [primary-controller]
+  version: 2.1.0
+  requires: [primary-openstack-controller]
+  required_for: [zaqar-db]
   cross-depends:
-    - name: deploy_start
+    - name: keystone-db
+    - name: zaqar-db
   cross-depended-by:
     - name: deploy_end
-#  requires: [deploy_start] # version 1.0.0
-#  required_for: [deploy_end]
-
   parameters:
-    puppet_manifest: "deploy.pp"
-    puppet_modules: "."
+    puppet_manifest: "puppet/manifests/keystone.pp"
+    puppet_modules: "puppet/modules:/etc/puppet/modules"
     timeout: 3600
+
+- id: zaqar-db
+  type: puppet
+  groups: [primary-controller]
+  version: 2.1.0
+  required_for: []
+  requires: []
+  condition:
+    yaql_exp: >
+      changedAny($.mysql, $.network_metadata.vips, $.get('database_vip'))
+  cross-depends:
+    - name: /^(primary-)?database$/
+  cross-depended-by:
+    - name: deploy_end
+  parameters:
+    puppet_manifest: "puppet/manifests/db.pp"
+    puppet_modules: "puppet/modules:/etc/puppet/modules"
+    timeout: 3600
+
+- id: openstack-haproxy-zaqar
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [primary-cluster-haproxy, cluster-haproxy]
+  # condition:
+  #   yaql_exp: >
+  #     changedAny($.keystone, $.public_ssl, $.get('use_ssl'),
+  #     $.get('external_lb'),
+  #     $.network_metadata.nodes.values().where(
+  #       ('controller' in $.node_roles) or
+  #       ('primary-controller' in $.node_roles)),
+  #     $.get('keystone_names'), $.get('keystone_ipaddresses'),
+  #     $.get('public_service_endpoint'), $.network_metadata.vips)
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
+  parameters:
+    puppet_manifest: 'puppet/manifests/openstack-haproxy-zaqar.pp'
+    puppet_modules: 'epuppet/modules:/etc/puppet/modules'
+    timeout: 300
+
+
+- id: primary-zaqar
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller]
+  required_for: [deploy_end]
+  requires: [primary-openstack-controller, openstack-controller]
+  # condition:
+  #   yaql_exp: &heat_enabled >
+  #     changedAny($.network_scheme, $.heat, $.sahara, $.rabbit, $.ceilometer,
+  #     $.get('max_retries'), $.get('max_pool_size'), $.get('max_overflow'),
+  #     $.get('idle_timeout'), $.network_metadata.vips, $.public_ssl,
+  #     $.get('use_ssl'), ('primary-controller' in $.roles),
+  #     $.get('kombu_compression'), $.get('heat_endpoint'), $.debug,
+  #     $.get('verbose'), $.get('use_stderr'), $.get('use_syslog'),
+  #     $.get('syslog_log_facility_heat'), $.deployment_mode,
+  #     $.get('region', 'RegionOne'), $.get('external_lb'),
+  #     $.get('database_vip'), $.get('heat_db_name'), $.storage,
+  #     $.network_metadata.nodes.values().where(
+  #       $.node_roles.any($.matches('controller'))).network_roles.select(
+  #         $.get('mgmt/messaging')), $.get('amqp_hosts'),
+  #     $.configuration.get('heat'), $.configuration.get('heat_api_paste_ini'),
+  #     $.get('heat_ha_engine'))
+  cross-depends:
+    - name: zaqar-db
+    - name: zaqar-keystone
+    - name: memcached
+  parameters:
+    puppet_manifest: 'puppet/manifests/zaqar-controller.pp'
+    puppet_modules: 'puppet/modules:/etc/puppet/modules'
+    timeout: 300
+
+- id: zaqar
+  type: puppet
+  version: 2.1.0
+  groups: [controller]
+  required_for: [deploy_end]
+  requires: [primary-openstack-controller, openstack-controller]
+  # condition:
+  #   yaql_exp: *heat_enabled
+  cross-depends:
+    - name: primary-zaqar
+  parameters:
+    puppet_manifest: 'puppet/manifests/zaqar-controller.pp'
+    puppet_modules: 'puppet/modules:/etc/puppet/modules'
+    timeout: 300
+
+# NOTE(pchechetin) --- READY DELIMETER
 
 #- id: fuel-plugin-zaqar-post-deployment-sh
 #  type: shell
