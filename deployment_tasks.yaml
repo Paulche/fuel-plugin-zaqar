@@ -62,11 +62,10 @@
   type: puppet
   groups: [primary-controller]
   version: 2.1.0
-  requires: [primary-openstack-controller]
-  required_for: [zaqar-db]
+  requires: [zaqar-hiera, primary-openstack-controller]
+  required_for: []
   cross-depends:
     - name: keystone-db
-    - name: zaqar-db
   cross-depended-by:
     - name: deploy_end
   parameters:
