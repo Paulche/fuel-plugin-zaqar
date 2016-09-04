@@ -1,0 +1,3 @@
+[submodule "deployment_scripts/puppet/modules/zaqar"]
+	path = deployment_scripts/puppet/modules/zaqar
+	url = https://github.com/openstack/puppet-zaqar.git
