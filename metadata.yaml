@@ -9,7 +9,7 @@ authors: ['Pavel Chechetin <pchechetin@mirantis.com>', 'Mirantis, Inc.']
 # TODO(pchechetin): Replace this link by the one from OpenStack
 homepage: 'https://github.com/Paulche/fuel-plugin-zaqar'
 groups: []
-is_hotpluggable: false
+is_hotpluggable: true
 package_version: '4.0.0'
 releases:
   - os: ubuntu

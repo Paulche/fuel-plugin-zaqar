@@ -1,4 +1,4 @@
-notify('MODULAR: fuel-plugin-zaqar/keystone.pp')
+notice('MODULAR: fuel-plugin-zaqar/keystone.pp')
 
 $zaqar             = hiera_hash('zaqar', {})
 $pass              = $zaqar['user_password']
@@ -21,11 +21,8 @@ $internal_base_url = "${internal_protocol}://${internal_address}:${port}"
 $admin_base_url    = "${admin_protocol}://${admin_address}:${port}"
 
 class {'::zaqar::keystone::auth':
-  password        => $pass,
-  public_url      => "${public_base_url}/v1/%(tenant_id)s",
-  public_url_v2   => "${public_base_url}/v2/%(tenant_id)s",
-  admin_url       => "${admin_base_url}/v1/%(tenant_id)s",
-  admin_url_v2    => "${admin_base_url}/v2/%(tenant_id)s",
-  internal_url    => "${internal_base_url}/v1/%(tenant_id)s",
-  internal_url_v2 => "${internal_base_url}/v2/%(tenant_id)s",
+  password     => $pass,
+  public_url   => "${public_base_url}/v2/%(tenant_id)s",
+  admin_url    => "${admin_base_url}/v2/%(tenant_id)s",
+  internal_url => "${internal_base_url}/v2/%(tenant_id)s",
 }

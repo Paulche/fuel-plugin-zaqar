@@ -18,7 +18,21 @@ class { '::zaqar::db::mysql':
   allowed_hosts => $allowed_hosts,
 }
 
+class { '::openstack::galera::client':
+  custom_setup_class => hiera('mysql_custom_setup_class', 'galera'),
+}
+
+class { '::osnailyfacter::mysql_access':
+  db_host     => $db_host,
+  db_user     => $db_root_user,
+  db_password => $db_root_password,
+}
+
 class mysql::config {}
 include mysql::config
 class mysql::server {}
 include mysql::server
+
+Class['::openstack::galera::client'] ->
+  Class['::osnailyfacter::mysql_access'] ->
+    Class['::zaqar::db::mysql']
