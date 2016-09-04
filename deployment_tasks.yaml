@@ -2,6 +2,7 @@
 # FIXME(pchechetin): Check TLS setup with self-signed certs (There should be add_trust_chain tasks probably)
 #
 
+# TODO(pchechetin): Make password genaration more graceful and more generic
 - id: zaqar-gen_passwords
   type: shell
   groups: [master]
@@ -9,7 +10,7 @@
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
-    cmd: sh /var/www/nailgun/plugins/fuel-plugin-zaqar-1.0/gen_passwords.sh {CLUSTER_ID}
+    cmd: sh /var/www/nailgun/plugins/fuel-plugin-zaqar-1.0/deployment_scripts/gen_passwords.sh {CLUSTER_ID}
     timeout: 180
 
 - id: zaqar-generate_keys
