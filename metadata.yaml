@@ -1,6 +1,6 @@
 name: fuel-plugin-zaqar
 title: Zaqar, the queue service for OpenStack
-version: '1.0.2'
+version: '1.0.3'
 # FIXME(pchechetin): Provide more meaningful description
 description: Zaqar provides a queue subsystem for notification.
 fuel_version: ['8.0']
