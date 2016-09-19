@@ -3,7 +3,7 @@
 #
 - id: primary-zaqar-mongo
   type: group
-  role: [primary-mongo]
+  role: [primary-zaqar-mongo]
   tasks: &common_tasks [hiera, globals, setup_repositories, tools, logging, netconfig, firewall, hosts, ntp-client, dns-client, cgroups]
   requires: [deploy_start]
   required_for: [deploy_end, primary-controller, controller]
@@ -14,7 +14,7 @@
 
 - id: zaqar-mongo
   type: group
-  role: [mongo]
+  role: [zaqar-mongo]
   tasks: *common_tasks
   requires: [primary-mongo]
   required_for: [deploy_end, primary-controller, controller]
@@ -23,10 +23,10 @@
     strategy:
       type: parallel
 
-- id: zaqar-primary-mongo
+- id: primary-zaqar-mongo
   type: puppet
   version: 2.1.0
-  groups: [primary-mongo]
+  groups: [primary-zaqar-mongo]
   required_for: [deploy_end]
   requires: [hosts, firewall, zaqar-hiera]
   parameters:
@@ -38,9 +38,9 @@
 - id: zaqar-mongo
   type: puppet
   version: 2.1.0
-  groups: [mongo]
+  groups: [zaqar-mongo]
   cross-depends:
-    - name: zaqar-primary-mongo
+    - name: primary-zaqar-mongo
   required_for: [deploy_end]
   requires: [hosts, firewall, zaqar-hiera]
   parameters:
