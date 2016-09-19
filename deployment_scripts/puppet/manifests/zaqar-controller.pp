@@ -1,5 +1,6 @@
 notice('fuel-plugin-zaqar/zaqar-controller.pp')
 
-include ::zaqar::server
-
+package { 'zaqar-server':
+  ensure => 'present',
+}
 

@@ -1,6 +1,53 @@
 # PRE DEPLOYMENT: TLS keys, Zaqar keys
 # FIXME(pchechetin): Check TLS setup with self-signed certs (There should be add_trust_chain tasks probably)
 #
+- id: primary-zaqar-mongo
+  type: group
+  role: [primary-mongo]
+  tasks: &common_tasks [hiera, globals, setup_repositories, tools, logging, netconfig, firewall, hosts, ntp-client, dns-client, cgroups]
+  requires: [deploy_start]
+  required_for: [deploy_end, primary-controller, controller]
+  fault_tolerance: 0
+  parameters:
+    strategy:
+      type: one_by_one
+
+- id: zaqar-mongo
+  type: group
+  role: [mongo]
+  tasks: *common_tasks
+  requires: [primary-mongo]
+  required_for: [deploy_end, primary-controller, controller]
+  fault_tolerance: 1
+  parameters:
+    strategy:
+      type: parallel
+
+- id: zaqar-primary-mongo
+  type: puppet
+  version: 2.1.0
+  groups: [primary-mongo]
+  required_for: [deploy_end]
+  requires: [hosts, firewall, zaqar-hiera]
+  parameters:
+    puppet_manifest: "puppet/manifests/mongo.pp"
+    puppet_modules: "puppet/modules:/etc/puppet/modules"
+    timeout: 3600
+
+
+- id: zaqar-mongo
+  type: puppet
+  version: 2.1.0
+  groups: [mongo]
+  cross-depends:
+    - name: zaqar-primary-mongo
+  required_for: [deploy_end]
+  requires: [hosts, firewall, zaqar-hiera]
+  parameters:
+    puppet_manifest: "puppet/manifests/mongo.pp"
+    puppet_modules: "puppet/modules:/etc/puppet/modules"
+    timeout: 3600
+
 
 # TODO(pchechetin): Make password genaration more graceful and more generic
 - id: zaqar-gen_passwords
@@ -81,7 +128,7 @@
   groups: [primary-controller]
   version: 2.1.0
   required_for: []
-  requires: []
+  requires: [primary-zaqar]
   condition:
     yaql_exp: >
       changedAny($.mysql, $.network_metadata.vips, $.get('database_vip'))
@@ -141,11 +188,23 @@
   #     $.configuration.get('heat'), $.configuration.get('heat_api_paste_ini'),
   #     $.get('heat_ha_engine'))
   cross-depends:
-    - name: zaqar-db
     - name: zaqar-keystone
     - name: memcached
   parameters:
     puppet_manifest: 'puppet/manifests/zaqar-controller.pp'
+    puppet_modules: 'puppet/modules:/etc/puppet/modules'
+    timeout: 300
+
+- id: primary-zaqar-start
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller]
+  required_for: [deploy_end]
+  requires: [primary-zaqar]
+  cross-depends:
+    - name: memcached
+  parameters:
+    puppet_manifest: 'puppet/manifests/zaqar-controller-start.pp'
     puppet_modules: 'puppet/modules:/etc/puppet/modules'
     timeout: 300
 
