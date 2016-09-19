@@ -1,0 +1,17 @@
+volumes:
+  - id: "zaqar-mongo"
+    type: "vg"
+    label: "MongoDB"
+    min_size: {generator: "calc_min_mongo_size"}
+    volumes:
+      - mount: "/var/lib/mongo"
+        type: "lv"
+        name: "mongodb"
+        size:
+          generator: "calc_total_vg"
+          generator_args: ["mongo"]
+        file_system: "ext4"
+volumes_roles_mapping:
+  zaqar-mongo:
+    - {allocate_size: "min", id: "os"}
+    - {allocate_size: "all", id: "zaqar-mongo"}
