@@ -23,7 +23,7 @@
     strategy:
       type: parallel
 
-- id: primary-zaqar-mongo
+- id: primary-zaqar-mongo-task
   type: puppet
   version: 2.1.0
   groups: [primary-zaqar-mongo]
@@ -35,12 +35,12 @@
     timeout: 3600
 
 
-- id: zaqar-mongo
+- id: zaqar-mongo-task
   type: puppet
   version: 2.1.0
   groups: [zaqar-mongo]
   cross-depends:
-    - name: primary-zaqar-mongo
+    - name: primary-zaqar-mongo-task
   required_for: [deploy_end]
   requires: [hosts, firewall, zaqar-hiera]
   parameters:
