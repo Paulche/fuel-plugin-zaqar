@@ -6,7 +6,7 @@
     # Should be true if network role requires gateway being set
     gateway: false
     # List of VIPs to be allocated
-    vip:
+    vip: []
     #      # Unique VIP name
     #    - name: "vip_name"
     #      # Optional linux namespace for VIP
