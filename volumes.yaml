@@ -6,10 +6,10 @@ volumes:
     volumes:
       - mount: "/var/lib/mongo"
         type: "lv"
-        name: "mongodb"
+        name: "zaqar-mongo"
         size:
           generator: "calc_total_vg"
-          generator_args: ["mongo"]
+          generator_args: ["zaqar-mongo"]
         file_system: "ext4"
 volumes_roles_mapping:
   zaqar-mongo:

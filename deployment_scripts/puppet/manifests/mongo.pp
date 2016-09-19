@@ -92,7 +92,7 @@
 
   mongodb::db { $zaqar_database:
     user     => 'zaqar',
-    password => $zaqar['db_password'],
+    password => $zaqar_hash['db_password'],
     roles    => [ 'readWrite', 'dbAdmin' ],
   }
 
